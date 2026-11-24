@@ -122,7 +122,7 @@ ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
  <div class="fig"><canvas id="cv" aria-label="Interactive Heikin-Ashi chart and ATR-normalized slope pane"></canvas><div class="tip" id="tip" hidden></div></div>
  <div class="range"><span>Pan</span><input id="end" type="range" min="0" max="100" value="100" aria-label="Pan window"><span style="margin-left:8px">Zoom</span><div class="seg"><button id="zo" aria-label="Zoom out">−</button><button id="zi" aria-label="Zoom in">+</button></div></div>
  <div class="stat" id="stat"></div>
- <p class="note" style="margin:6px 0 0">Sample dataset loaded from <code>data.json</code>. Heikin-Ashi candles and aggregated intervals are computed client-side. Hovering over a candle highlights the lookback vector between anchor index <code>i - N</code> and current bar <code>i</code>.</p>
+ <p class="note" style="margin:6px 0 0">Starts immediately with built-in sample data and automatically uses <code>data.json</code> when served alongside <code>index.html</code>. Hovering over a candle highlights the lookback vector between anchor index <code>i - N</code> and current bar <code>i</code>.</p>
 </div>
 </section>
 
@@ -150,7 +150,7 @@ ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
 <section class="band">
 <h2>Usage &amp; Official Links</h2>
 <ol>
- <li>Place <code>index.html</code> and <code>data.json</code> in the same directory and serve via a local static server (such as <code>python -m http.server</code>) or GitHub Pages so <code>fetch('data.json')</code> loads cleanly.</li>
+ <li>Opens immediately with built-in sample data, and also reads <code>data.json</code> when placed in the same folder on a web server or GitHub Pages.</li>
  <li>Explore <a href="https://botbama.com" target="_blank" rel="noopener noreferrer">botbama.com</a> for more details about BotBama tools and updates by Arya Alimohammadi (آریا علی‌محمدی).</li>
  <li>Watch live sessions on the <strong>بات با ما (BotBama)</strong> YouTube channel (<a href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">youtube.com/@BotBama</a>).</li>
 </ol>
@@ -158,6 +158,18 @@ ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
 
 <script>
 {
+const FALLBACK_DATA={
+  t0:29500000,
+  base:265000,
+  dt:Array.from({length:120},()=>10),
+  p:Array.from({length:480},(_,idx)=>{
+    const bar=Math.floor(idx/4),slot=idx%4;
+    const wave=Math.round(320*Math.sin(bar*0.11)+140*Math.cos(bar*0.045)+bar*2.2);
+    const o=wave,h=wave+95+(bar%5)*18,l=wave-90-((bar+2)%4)*16,c=wave+Math.round(55*Math.cos(bar*0.19));
+    return slot===0?o:slot===1?h:slot===2?l:c;
+  })
+};
+
 const R={
  arch:[
   ["Heikin-Ashi Builder","Smooths raw OHLC bars into HA candles","Yes"],
@@ -222,11 +234,22 @@ const s1=(ua,la,T)=>{const s=new Int8Array(ua.length);let reg=0;for(let i=0;i<ua
 const s2=(th,Ti,Tf)=>{const s=new Int8Array(th.length);let arm=0;for(let i=0;i<th.length;i++){const x=th[i];if(isNaN(x))continue;if(x>=Ti){arm=1;continue}if(x<=-Ti){arm=-1;continue}
  if(arm===1){if(x>=0&&x<=Tf){s[i]=1;arm=0}else if(x<0)arm=0}else if(arm===-1){if(x<=0&&x>=-Tf){s[i]=-1;arm=0}else if(x>0)arm=0}}return s};
 
-const st={proj:2,tf:30,zoom:160,end:1,hover:-1};let D10=null,B=null;
+const st={proj:2,tf:30,zoom:160,end:1,hover:-1};let D10=null,B=null,srcLabel='Built-in sample';
 const $=id=>document.getElementById(id);
 const agg=(d,m)=>{const out={t:[],o:[],h:[],l:[],c:[]};let cur=-1;for(let i=0;i<d.t.length;i++){const b=Math.floor(d.t[i]/60000/m);if(b!==cur){cur=b;out.t.push(b*m*60000);out.o.push(d.o[i]);out.h.push(d.h[i]);out.l.push(d.l[i]);out.c.push(d.c[i])}else{const k=out.t.length-1;out.h[k]=Math.max(out.h[k],d.h[i]);out.l[k]=Math.min(out.l[k],d.l[i]);out.c[k]=d.c[i]}}return out};
 
+const unpack=j=>{
+ const t=[],o=[],h=[],l=[],c=[];let m=j.t0;
+ for(let i=0;i<j.dt.length;i++){
+  m+=j.dt[i];t.push(m*60000);
+  const p=j.p,k=4*i;
+  o.push((j.base+p[k])/100);h.push((j.base+p[k+1])/100);l.push((j.base+p[k+2])/100);c.push((j.base+p[k+3])/100);
+ }
+ return{t,o,h,l,c};
+};
+
 const compute=()=>{
+ if(!D10)return;
  const d=st.tf===10?D10:agg(D10,30),k=$('ma').value,per=+$('per').value||14,N=Math.max(1,+$('N').value||3),Ti=+$('Ti').value,Tf=+$('Tf').value,dev=+$('dev').value||1.1;
  const ha=heikin(d.o,d.h,d.l,d.c),atr=atrW(d.h,d.l,d.c,14);
  const mP2=maF(ha.ho,k,per),th=ang(ha.hc,mP2,N,atr);
@@ -235,7 +258,7 @@ const compute=()=>{
  const warm=Math.min(d.c.length-1,4*per+20);let sig=st.proj===2?s2(th,Ti,Tf):s1(ua,la,Ti);for(let i=0;i<warm;i++)sig[i]=0;
  const ns=sig.reduce((a,v)=>a+(v?1:0),0);
  B={d,ha,atr,mP2,th,up,lo,ua,la,sig,N,Ti,Tf};
- $('stat').innerHTML=`Bars: ${nspan(d.c.length)} · Active markers in window: ${nspan(ns)} · Mode: ${nspan(st.proj===2?'M2':'M1')} · Interval: ${nspan(st.tf===10?'1x':'3x')}`;
+ $('stat').innerHTML=`Bars: ${nspan(d.c.length)} · Active markers: ${nspan(ns)} · Mode: ${nspan(st.proj===2?'M2':'M1')} · Interval: ${nspan(st.tf===10?'1x':'3x')} · Source: ${nspan(srcLabel)}`;
  $('end').max=Math.max(0,d.c.length-20);if(st.end===1)$('end').value=$('end').max;draw();
 };
 
@@ -317,15 +340,16 @@ $('zi').addEventListener('click',()=>{st.zoom=Math.max(30,Math.round(st.zoom/1.4
 $('zo').addEventListener('click',()=>{st.zoom=Math.min(600,Math.round(st.zoom*1.4));draw()});
 new ResizeObserver(draw).observe(cv);
 
-fetch('data.json').then(r=>r.json()).then(j=>{
- const t=[],o=[],h=[],l=[],c=[];let m=j.t0;
- for(let i=0;i<j.dt.length;i++){
-  m+=j.dt[i];t.push(m*60000);
-  const p=j.p,k=4*i;
-  o.push((j.base+p[k])/100);h.push((j.base+p[k+1])/100);l.push((j.base+p[k+2])/100);c.push((j.base+p[k+3])/100);
+D10=unpack(FALLBACK_DATA);
+compute();
+
+fetch('data.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{
+ if(j&&Array.isArray(j.dt)&&Array.isArray(j.p)&&j.dt.length){
+  D10=unpack(j);
+  srcLabel='data.json';
+  compute();
  }
- D10={t,o,h,l,c};compute();
-}).catch(()=>{$('stat').textContent='Failed to load data.json.'});
+}).catch(()=>{});
 }
 </script>
 </body>
