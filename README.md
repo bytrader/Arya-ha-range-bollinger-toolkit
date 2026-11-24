@@ -21,3 +21,7 @@ ha = to_heikin_ashi(raw)
 rng = build_range_bars(raw, range_size=1.5)
 events = synchronize_dual_chart(ha, rng)
 bb = bollinger_metrics([c.close for c in ha], period=2)
+
+## Interactive Demo
+
+See `demo/index.html` (paired with `demo/data.json`) for an interactive Heikin-Ashi and slope visualization with pan and zoom controls.
