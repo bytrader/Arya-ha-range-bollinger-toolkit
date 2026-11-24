@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heikin-Ashi &amp; Slope Analytics Explorer — Arya Alimohammadi | BotBama</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f7f5f2,#191716);--ink:light-dark(#191716,#f3eeea);--mute:light-dark(#5b5450,#b5a9a2);--teal:light-dark(#0d7680,#3fb7c1);--claret:light-dark(#990f3d,#ff6f91);--card:light-dark(#ffffff,#24201e);--line:light-dark(#dfd8d0,#38322f);--chart:#12100f}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 Inter,system-ui,-apple-system,sans-serif;overflow-x:clip}
+.band{padding:clamp(22px,3.5vw,44px) max(5vw,16px);max-width:1240px;margin:0 auto}
+.author-banner{font-size:13.5px;font-weight:600;color:var(--teal);margin-bottom:8px;letter-spacing:.02em}
+h1{font-weight:800;font-size:clamp(26px,3.8vw,40px);line-height:1.2;margin:0 0 10px;text-wrap:balance}
+h2{font-weight:800;font-size:clamp(20px,2.4vw,26px);line-height:1.3;margin:0 0 12px;text-wrap:balance}
+p{max-width:74ch;margin:0 0 12px}
+.lead{font-size:16px;color:var(--mute)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;text-decoration:none;border:1px solid var(--line)}
+.btn-primary{background:var(--teal);color:#ffffff;border-color:var(--teal)}
+.btn-secondary{background:var(--card);color:var(--ink)}
+.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin-top:20px}
+.kpi{border-top:3px solid var(--ink);padding-top:10px}
+.kpi b{display:block;font-size:clamp(20px,2.5vw,28px);font-weight:800;line-height:1.25}
+.kpi span{color:var(--mute);font-size:13.5px}
+.good{color:var(--teal)}.bad{color:var(--claret)}
+.lab{background:var(--chart);color:#e9e4df;border-radius:8px;padding:14px;border:1px solid #2d2724}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;margin-bottom:10px;font-size:13.5px}
+.ctl label{display:flex;flex-direction:column;gap:4px;color:#b8ada5}
+.ctl select,.ctl input[type=number]{font:15px Inter,sans-serif;background:#221d1a;color:#f2ece7;border:1px solid #4a3f39;border-radius:5px;height:38px;padding:0 8px;width:96px}
+.ctl select{width:auto}
+.seg{display:flex;border:1px solid #4a3f39;border-radius:5px;overflow:hidden}
+.seg button{font:600 13.5px Inter,sans-serif;background:#221d1a;color:#cfc5bd;border:0;min-height:38px;padding:0 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:#e9e4df;color:#12100f}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #ffd54a;outline-offset:2px}
+.fig{position:relative;height:clamp(420px,56vh,540px)}
+.fig>canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y}
+.tip{position:absolute;top:8px;right:8px;background:#000000d9;border:1px solid #4a3f39;border-radius:5px;padding:7px 10px;font-size:12.5px;line-height:1.55;pointer-events:none;max-width:270px}
+.range{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:13.5px;color:#b8ada5}
+.range input{flex:1;accent-color:#ffd54a;height:30px}
+.stat{margin-top:8px;font-size:13.5px;color:#d8cec6}
+.note{font-size:12.5px;color:var(--mute)}
+.lab .note{color:#9d928a}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:28px}
+.months{position:relative;height:250px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px}.months>svg{position:absolute;inset:0;width:100%;height:100%}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--mute);font-size:12.5px}
+td.n,th.n{text-align:right}
+.scroll{overflow-x:auto}
+ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<section class="band">
+<div class="author-banner">Created by Arya Alimohammadi (آریا علی‌محمدی) · BotBama</div>
+<h1>Interactive Heikin-Ashi &amp; ATR-Normalized Slope Explorer</h1>
+<p class="lead">A browser-based inspection tool for converting raw OHLC series into Heikin-Ashi candles, aggregating multi-bar intervals, and visualizing ATR-normalized slope angles and band metrics without look-ahead bias.</p>
+<div class="cta-row">
+ <a class="btn btn-primary" href="https://botbama.com" target="_blank" rel="noopener noreferrer">Explore BotBama (botbama.com)</a>
+ <a class="btn btn-secondary" href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">Watch Live on YouTube — بات با ما (BotBama)</a>
+</div>
+<div class="kpis">
+ <div class="kpi"><b>Dual-Series</b><span>Heikin-Ashi smoothed candles paired with a lower slope &amp; threshold pane.</span></div>
+ <div class="kpi"><b>ATR-Scaled</b><span>Slope angles normalize price deltas against ATR so steepness stays scale-aware.</span></div>
+ <div class="kpi"><b>Zero Look-Ahead</b><span>Each bar evaluates only information available up to its own index.</span></div>
+ <div class="kpi"><b>Interactive</b><span>Hover for bar metrics, scrub across history, and zoom in or out.</span></div>
+</div>
+</section>
+
+<section class="band" style="padding-top:0">
+<div class="lab" id="lab">
+ <div class="ctl">
+  <div><div style="color:#b8ada5;margin-bottom:3px">Mode</div><div class="seg" id="proj"><button aria-pressed="true" data-v="2">M2: HA-to-MA Slope</button><button aria-pressed="false" data-v="1">M1: Band Slopes</button></div></div>
+  <div><div style="color:#b8ada5;margin-bottom:3px">Interval</div><div class="seg" id="tf"><button aria-pressed="false" data-v="10">1x</button><button aria-pressed="true" data-v="30">3x</button></div></div>
+  <label>MA Type<select id="ma"><option>KAMA</option><option>TEMA</option></select></label>
+  <label>Period<input id="per" type="number" min="2" max="200" value="14"></label>
+  <label>Lookback N<input id="N" type="number" min="1" max="20" value="3"></label>
+  <label id="lTi">Upper (°)<input id="Ti" type="number" min="1" max="89" value="22"></label>
+  <label id="lTf">Band (°)<input id="Tf" type="number" min="0" max="45" value="10"></label>
+  <label id="lDev" hidden>Band Mult<input id="dev" type="number" min="0.1" max="5" step="0.1" value="1.1"></label>
+ </div>
+ <div class="fig"><canvas id="cv" aria-label="Interactive Heikin-Ashi chart and ATR-normalized slope pane"></canvas><div class="tip" id="tip" hidden></div></div>
+ <div class="range"><span>Pan</span><input id="end" type="range" min="0" max="100" value="100" aria-label="Pan window"><span style="margin-left:8px">Zoom</span><div class="seg"><button id="zo" aria-label="Zoom out">−</button><button id="zi" aria-label="Zoom in">+</button></div></div>
+ <div class="stat" id="stat"></div>
+ <p class="note" style="margin:6px 0 0">Sample dataset loaded from <code>data.json</code>. Heikin-Ashi candles and aggregated intervals are computed client-side. Hovering over a candle highlights the lookback vector between anchor index <code>i - N</code> and current bar <code>i</code>.</p>
+</div>
+</section>
+
+<section class="band">
+<div class="grid2">
+ <div>
+  <h2>Sample Period Distribution</h2>
+  <p>Normalized sample index distribution across 14 sub-periods for quick visual inspection of relative activity and amplitude.</p>
+  <div class="months"><svg id="mon" role="img" aria-label="Sample sub-period bar chart"></svg></div>
+  <p class="note">Illustrative normalized index values for chart layout testing.</p>
+ </div>
+ <div>
+  <h2>Architecture Summary</h2>
+  <div class="scroll"><table><thead><tr><th>Component</th><th>Role</th><th class="n">Look-Ahead Safe</th></tr></thead><tbody id="ytab"></tbody></table></div>
+  <p class="note">Designed to pair cleanly with the Python utilities in <code>toolkit.py</code>.</p>
+ </div>
+</div>
+</section>
+
+<section class="band">
+<h2>Module Reference</h2>
+<div class="scroll"><table><thead><tr><th>Module / Function</th><th>Input</th><th>Output</th><th>Purpose</th></tr></thead><tbody id="ftab"></tbody></table></div>
+</section>
+
+<section class="band">
+<h2>Usage &amp; Channels</h2>
+<ol>
+ <li>Place <code>index.html</code> and <code>data.json</code> in the same directory and serve via a local static server (e.g., <code>python -m http.server</code>) so <code>fetch('data.json')</code> succeeds.</li>
+ <li>Visit <a href="https://botbama.com" target="_blank" rel="noopener noreferrer">botbama.com</a> to learn more about BotBama tools and resources.</li>
+ <li>Watch live streams on the <strong>بات با ما (BotBama)</strong> YouTube channel (<a href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">youtube.com/@BotBama</a>).</li>
+</ol>
+</section>
+
+<script>
+{
+const R={
+ arch:[
+  ["Heikin-Ashi Builder","Smooths raw OHLC bars into HA candles","Yes"],
+  ["Interval Aggregator","Groups base bars into wider intervals","Yes"],
+  ["ATR Normalizer","Scales price change by ATR(14) before atan()","Yes"],
+  ["Slope & Band Pane","Plots angle or band-edge angles with thresholds","Yes"]
+ ],
+ mods:[
+  ["heikin()","OHLC arrays","HA OHLC arrays","Computes smoothed Heikin-Ashi candles"],
+  ["atrW()","H, L, C, period","ATR array","Wilder-style Average True Range"],
+  ["maF()","Series, MA type, period","MA array","Adaptive (KAMA) or triple EMA (TEMA) smoothing"],
+  ["ang()","Current, anchor, N, ATR","Angle (deg)","Computes atan(delta / (N * ATR)) in degrees"]
+ ],
+ months:[["P01",73],["P02",-50],["P03",210],["P04",241],["P05",303],["P06",465],["P07",-202],["P08",167],["P09",646],["P10",458],["P11",214],["P12",256],["P13",-58],["P14",577]]
+};
+const nspan=(v,c)=>`<span class="n ${c||''}">${v}</span>`;
+document.getElementById('ytab').innerHTML=R.arch.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('');
+document.getElementById('ftab').innerHTML=R.mods.map(r=>`<tr><td><code>${r[0]}</code></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+const mon=document.getElementById('mon');
+const drawMon=()=>{
+ const W=mon.clientWidth,H=mon.clientHeight,pad=28,m=R.months,mx=700,bw=(W-16)/m.length,y0=H/2-4,sc=(H/2-pad)/mx;
+ mon.innerHTML=`<line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="currentColor" stroke-opacity=".3"/>`+m.map((d,i)=>{
+  const v=d[1],h=Math.abs(v)*sc,x=W-8-(i+1)*bw+bw*.15,y=v>=0?y0-h:y0;
+  return `<rect x="${x}" y="${y}" width="${bw*.7}" height="${Math.max(1,h)}" fill="${v>=0?'var(--teal)':'var(--claret)'}"/><text x="${x+bw*.35}" y="${v>=0?y-4:y+h+12}" text-anchor="middle" font-size="10.5" fill="currentColor">${v}</text><text x="${x+bw*.35}" y="${H-5}" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">${d[0]}</text>`;
+ }).join('');
+};
+new ResizeObserver(drawMon).observe(mon);
+
+const heikin=(o,h,l,c)=>{
+ const n=c.length,ho=new Float64Array(n),hc=new Float64Array(n),hh=new Float64Array(n),hl=new Float64Array(n);
+ for(let i=0;i<n;i++){
+  hc[i]=(o[i]+h[i]+l[i]+c[i])/4;
+  ho[i]=i?(ho[i-1]+hc[i-1])/2:(o[0]+c[0])/2;
+  hh[i]=i?Math.max(h[i],ho[i],hc[i]):h[i];
+  hl[i]=i?Math.min(l[i],ho[i],hc[i]):l[i];
+ }
+ return{ho,hc,hh,hl};
+};
+const atrW=(h,l,c,n)=>{
+ const a=new Float64Array(c.length);
+ for(let i=0;i<c.length;i++){
+  const tr=i?Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])):h[i]-l[i];
+  a[i]=i?(a[i-1]*(n-1)+tr)/n:tr;
+ }
+ return a;
+};
+const ema=(x,n)=>{const a=2/(n+1),y=new Float64Array(x.length);for(let i=0;i<x.length;i++)y[i]=i?a*x[i]+(1-a)*y[i-1]:x[i];return y};
+const maF=(x,k,n)=>{
+ if(k==='TEMA'){const e1=ema(x,n),e2=ema(e1,n),e3=ema(e2,n);return e1.map((v,i)=>3*v-3*e2[i]+e3[i])}
+ const y=Float64Array.from(x),fs=2/3,ss=2/31;
+ for(let i=n;i<x.length;i++){
+  let vol=0;for(let j=0;j<n;j++)vol+=Math.abs(x[i-j]-x[i-j-1]);
+  const er=vol>0?Math.abs(x[i]-x[i-n])/vol:0,sc=(er*(fs-ss)+ss)**2;
+  y[i]=y[i-1]+sc*(x[i]-y[i-1]);
+ }
+ return y;
+};
+const sdA=(x,m,n)=>x.map((_,i)=>{const s=Math.max(0,i-n+1),L=i-s+1;if(L<2)return 0;let q=0;for(let j=s;j<=i;j++)q+=(x[j]-m[i])**2;return Math.sqrt(q/L)});
+const ang=(cur,anc,N,a)=>cur.map((v,i)=>i<N?NaN:Math.atan((v-anc[i-N])/(N*a[i]))*180/Math.PI);
+const s1=(ua,la,T)=>{const s=new Int8Array(ua.length);let reg=0;for(let i=0;i<ua.length;i++){if(isNaN(ua[i]))continue;const r=ua[i]>=T&&la[i]>=-5?1:(la[i]<=-T&&ua[i]<=5?-1:0);if(r&&r!==reg)s[i]=r;if(r)reg=r}return s};
+const s2=(th,Ti,Tf)=>{const s=new Int8Array(th.length);let arm=0;for(let i=0;i<th.length;i++){const x=th[i];if(isNaN(x))continue;if(x>=Ti){arm=1;continue}if(x<=-Ti){arm=-1;continue}
+ if(arm===1){if(x>=0&&x<=Tf){s[i]=1;arm=0}else if(x<0)arm=0}else if(arm===-1){if(x<=0&&x>=-Tf){s[i]=-1;arm=0}else if(x>0)arm=0}}return s};
+
+const st={proj:2,tf:30,zoom:160,end:1,hover:-1};let D10=null,B=null;
+const $=id=>document.getElementById(id);
+const agg=(d,m)=>{const out={t:[],o:[],h:[],l:[],c:[]};let cur=-1;for(let i=0;i<d.t.length;i++){const b=Math.floor(d.t[i]/60000/m);if(b!==cur){cur=b;out.t.push(b*m*60000);out.o.push(d.o[i]);out.h.push(d.h[i]);out.l.push(d.l[i]);out.c.push(d.c[i])}else{const k=out.t.length-1;out.h[k]=Math.max(out.h[k],d.h[i]);out.l[k]=Math.min(out.l[k],d.l[i]);out.c[k]=d.c[i]}}return out};
+
+const compute=()=>{
+ const d=st.tf===10?D10:agg(D10,30),k=$('ma').value,per=+$('per').value||14,N=Math.max(1,+$('N').value||3),Ti=+$('Ti').value,Tf=+$('Tf').value,dev=+$('dev').value||1.1;
+ const ha=heikin(d.o,d.h,d.l,d.c),atr=atrW(d.h,d.l,d.c,14);
+ const mP2=maF(ha.ho,k,per),th=ang(ha.hc,mP2,N,atr);
+ const mP1=maF(ha.ho,k,per),sd=sdA(ha.ho,mP1,per),up=mP1.map((v,i)=>v+dev*sd[i]),lo=mP1.map((v,i)=>v-dev*sd[i]);
+ const ua=ang(up,up,N,atr),la=ang(lo,lo,N,atr);
+ const warm=Math.min(d.c.length-1,4*per+20);let sig=st.proj===2?s2(th,Ti,Tf):s1(ua,la,Ti);for(let i=0;i<warm;i++)sig[i]=0;
+ const ns=sig.reduce((a,v)=>a+(v?1:0),0);
+ B={d,ha,atr,mP2,th,up,lo,ua,la,sig,N,Ti,Tf};
+ $('stat').innerHTML=`Bars: ${nspan(d.c.length)} · Active markers in window: ${nspan(ns)} · Mode: ${nspan(st.proj===2?'M2':'M1')} · Interval: ${nspan(st.tf===10?'1x':'3x')}`;
+ $('end').max=Math.max(0,d.c.length-20);if(st.end===1)$('end').value=$('end').max;draw();
+};
+
+const cv=$('cv'),ctx=cv.getContext('2d');
+const fmtTime=ms=>{const d=new Date(ms);return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} UTC`};
+const regime=x=>{if(isNaN(x))return'N/A';const Ti=B.Ti,Tf=B.Tf;return x>=Ti?'Upper threshold exceeded':x>=0&&x<=Tf?'Within positive band':x<=-Ti?'Lower threshold exceeded':x<0&&x>=-Tf?'Within negative band':'Intermediate slope'};
+
+function draw(){
+ if(!B)return;
+ const dpr=devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
+ cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+ const d=B.d,n=d.c.length,zoom=Math.min(n,Math.max(30,W<520?Math.min(st.zoom,90):st.zoom)),e=Math.min(n-1,(+$('end').value||0)+19),s=Math.max(0,e-zoom+1);
+ const Hp=H*0.68,Ha=H-Hp-14,rx=W-62,bw=rx/(e-s+1);
+ let hi=-1e9,lo=1e9;
+ for(let i=s;i<=e;i++){hi=Math.max(hi,B.ha.hh[i],st.proj===1?B.up[i]:B.mP2[i]);lo=Math.min(lo,B.ha.hl[i],st.proj===1?B.lo[i]:B.mP2[i])}
+ const padp=(hi-lo)*0.08;hi+=padp;lo-=padp;
+ const Y=v=>10+(hi-v)/(hi-lo)*(Hp-20),X=i=>(i-s+.5)*bw;
+ ctx.font='11px Inter,sans-serif';ctx.fillStyle='#8f857e';ctx.textAlign='left';
+ for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4,y=Y(v);ctx.strokeStyle='#2a2522';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(rx,y);ctx.stroke();ctx.fillText(v.toFixed(1),rx+5,y+4)}
+ for(let i=s;i<=e;i++){
+  const up=B.ha.hc[i]>=B.ha.ho[i],x=X(i);
+  ctx.strokeStyle=ctx.fillStyle=up?'#3fb7a9':'#e0566e';
+  ctx.beginPath();ctx.moveTo(x,Y(B.ha.hh[i]));ctx.lineTo(x,Y(B.ha.hl[i]));ctx.stroke();
+  const y1=Y(Math.max(B.ha.ho[i],B.ha.hc[i])),y2=Y(Math.min(B.ha.ho[i],B.ha.hc[i]));
+  ctx.fillRect(x-Math.max(1,bw*.35),y1,Math.max(2,bw*.7),Math.max(1,y2-y1));
+ }
+ const line=(a,col,dash,wd)=>{ctx.strokeStyle=col;ctx.lineWidth=wd||1.5;ctx.setLineDash(dash||[]);ctx.beginPath();for(let i=s;i<=e;i++){const y=Y(a[i]);i===s?ctx.moveTo(X(i),y):ctx.lineTo(X(i),y)}ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=1};
+ if(st.proj===1){line(B.up,'#7fb2ff',[5,4]);line(B.lo,'#7fb2ff',[5,4])}else line(B.mP2,'#46d0ff',null,2);
+ for(let i=s;i<=e;i++){
+  const g=B.sig[i];if(!g)continue;
+  const x=X(i),y=g>0?Y(B.ha.hl[i])+12:Y(B.ha.hh[i])-12,z=Math.max(5,Math.min(8,bw*.8));
+  ctx.fillStyle=g>0?'#ffffff':'#ffd54a';ctx.beginPath();
+  if(g>0){ctx.moveTo(x,y-z);ctx.lineTo(x-z,y+z);ctx.lineTo(x+z,y+z)}else{ctx.moveTo(x,y+z);ctx.lineTo(x-z,y-z);ctx.lineTo(x+z,y-z)}
+  ctx.fill();
+ }
+ const hv=st.hover>=s&&st.hover<=e?st.hover:e;
+ if(st.proj===2&&hv-B.N>=s){
+  const th=B.th[hv],col=th>=B.Ti?'#7dff6b':th>0?'#ffd54a':th<=-B.Ti?'#ff4d4d':'#ff9a3d';
+  ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(X(hv-B.N),Y(B.mP2[hv-B.N]));ctx.lineTo(X(hv),Y(B.ha.hc[hv]));ctx.stroke();ctx.lineWidth=1;
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(X(hv-B.N),Y(B.mP2[hv-B.N]),3.5,0,7);ctx.arc(X(hv),Y(B.ha.hc[hv]),3.5,0,7);ctx.fill();
+ }
+ const y0=Hp+14,A=v=>y0+(90-Math.max(-90,Math.min(90,v)))/180*Ha;
+ ctx.fillStyle='#1b1715';ctx.fillRect(0,y0,rx,Ha);
+ ctx.fillStyle='#ffd54a22';ctx.fillRect(0,A(B.Tf),rx,A(-B.Tf)-A(B.Tf));
+ [[B.Ti,'#7dff6b66'],[-B.Ti,'#ff4d4d66'],[0,'#ffffff44']].forEach(([v,c])=>{
+  ctx.strokeStyle=c;ctx.beginPath();ctx.moveTo(0,A(v));ctx.lineTo(rx,A(v));ctx.stroke();
+  ctx.fillStyle='#8f857e';ctx.fillText((v>0?'+':'')+v+'°',rx+5,A(v)+4);
+ });
+ const aline=(a,col)=>{ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();let st0=true;for(let i=s;i<=e;i++){if(isNaN(a[i]))continue;const y=A(a[i]);st0?ctx.moveTo(X(i),y):ctx.lineTo(X(i),y);st0=false}ctx.stroke();ctx.lineWidth=1};
+ if(st.proj===2)aline(B.th,'#46d0ff');else{aline(B.ua,'#9fd38a');aline(B.la,'#ff8fa3')}
+ ctx.fillStyle='#b8ada5';ctx.textAlign='left';
+ ctx.fillText(st.proj===2?'Anchor-to-Current Slope (°)':'Upper (green) & Lower (pink) Band Slopes (°)',8,y0+14);
+ if(st.hover>=s&&st.hover<=e){
+  ctx.strokeStyle='#ffffff33';ctx.beginPath();ctx.moveTo(X(hv),0);ctx.lineTo(X(hv),H);ctx.stroke();
+  const t=$('tip');t.hidden=false;
+  t.innerHTML=`<div>${nspan(fmtTime(d.t[hv]))}</div><div>HA close: ${nspan(B.ha.hc[hv].toFixed(2))}</div>`
+   +(st.proj===2?`<div>Slope: ${nspan(B.th[hv].toFixed(1)+'°')}</div><div>${regime(B.th[hv])}</div>`
+   :`<div>Upper: ${nspan(B.ua[hv].toFixed(1)+'°')} · Lower: ${nspan(B.la[hv].toFixed(1)+'°')}</div>`)
+   +(B.sig[hv]?`<div>Marker: ${B.sig[hv]>0?'+1':'−1'}</div>`:'');
+ }else $('tip').hidden=true;
+ st.geo={s,e,bw};
+}
+
+const hoverAt=x=>{if(!st.geo)return;const i=st.geo.s+Math.floor(x/st.geo.bw);st.hover=i<=st.geo.e?i:-1;draw()};
+cv.addEventListener('pointermove',ev=>{const r=cv.getBoundingClientRect();hoverAt(ev.clientX-r.left)});
+cv.addEventListener('pointerleave',()=>{st.hover=-1;draw()});
+const seg=(id,key)=>$(id).addEventListener('click',ev=>{
+ const b=ev.target.closest('button');if(!b)return;
+ for(const x of $(id).children)x.setAttribute('aria-pressed',x===b);
+ st[key]=+b.dataset.v;
+ if(key==='proj'){$('lDev').hidden=st.proj!==1;$('lTf').hidden=st.proj!==2;$('lTi').firstChild.textContent=st.proj===2?'Upper (°)':'Threshold T (°)'}
+ if(key==='tf')st.end=1;
+ compute();
+});
+seg('proj','proj');seg('tf','tf');
+['ma','per','N','Ti','Tf','dev'].forEach(id=>$(id).addEventListener('change',compute));
+$('end').addEventListener('input',()=>{st.end=0;draw()});
+$('zi').addEventListener('click',()=>{st.zoom=Math.max(30,Math.round(st.zoom/1.4));draw()});
+$('zo').addEventListener('click',()=>{st.zoom=Math.min(600,Math.round(st.zoom*1.4));draw()});
+new ResizeObserver(draw).observe(cv);
+
+fetch('data.json').then(r=>r.json()).then(j=>{
+ const t=[],o=[],h=[],l=[],c=[];let m=j.t0;
+ for(let i=0;i<j.dt.length;i++){
+  m+=j.dt[i];t.push(m*60000);
+  const p=j.p,k=4*i;
+  o.push((j.base+p[k])/100);h.push((j.base+p[k+1])/100);l.push((j.base+p[k+2])/100);c.push((j.base+p[k+3])/100);
+ }
+ D10={t,o,h,l,c};compute();
+}).catch(()=>{$('stat').textContent='Failed to load data.json.'});
+}
+</script>
+</body>
+</html>
