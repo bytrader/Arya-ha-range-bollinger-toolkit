@@ -11,7 +11,7 @@
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 Inter,system-ui,-apple-system,sans-serif;overflow-x:clip}
 .band{padding:clamp(22px,3.5vw,44px) max(5vw,16px);max-width:1240px;margin:0 auto}
-.author-banner{font-size:13.5px;font-weight:600;color:var(--teal);margin-bottom:8px;letter-spacing:.02em}
+.author-banner{font-size:13.5px;font-weight:700;color:var(--teal);margin-bottom:8px;letter-spacing:.02em}
 h1{font-weight:800;font-size:clamp(26px,3.8vw,40px);line-height:1.2;margin:0 0 10px;text-wrap:balance}
 h2{font-weight:800;font-size:clamp(20px,2.4vw,26px);line-height:1.3;margin:0 0 12px;text-wrap:balance}
 p{max-width:74ch;margin:0 0 12px}
@@ -20,6 +20,9 @@ p{max-width:74ch;margin:0 0 12px}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;text-decoration:none;border:1px solid var(--line)}
 .btn-primary{background:var(--teal);color:#ffffff;border-color:var(--teal)}
 .btn-secondary{background:var(--card);color:var(--ink)}
+.glance-box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-top:20px}
+.glance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;align-items:center}
+.glance-svg{width:100%;height:auto;border-radius:6px;background:#12100f;border:1px solid #2d2724;display:block}
 .n{font-variant-numeric:tabular-nums;white-space:nowrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin-top:20px}
 .kpi{border-top:3px solid var(--ink);padding-top:10px}
@@ -56,13 +59,46 @@ ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
 </head>
 <body>
 <section class="band">
-<div class="author-banner">Created by Arya Alimohammadi (آریا علی‌محمدی) · BotBama</div>
+<div class="author-banner">Arya Alimohammadi (آریا علی‌محمدی) · BotBama</div>
 <h1>Interactive Heikin-Ashi &amp; ATR-Normalized Slope Explorer</h1>
-<p class="lead">A browser-based inspection tool for converting raw OHLC series into Heikin-Ashi candles, aggregating multi-bar intervals, and visualizing ATR-normalized slope angles and band metrics without look-ahead bias.</p>
+<p class="lead">At a glance: this interactive tool converts price series into Heikin-Ashi candles, groups intervals, and plots ATR-normalized slope angles and threshold bands without look-ahead bias.</p>
 <div class="cta-row">
- <a class="btn btn-primary" href="https://botbama.com" target="_blank" rel="noopener noreferrer">Explore BotBama (botbama.com)</a>
- <a class="btn btn-secondary" href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">Watch Live on YouTube — بات با ما (BotBama)</a>
+ <a class="btn btn-primary" href="https://botbama.com" target="_blank" rel="noopener noreferrer">Visit botbama.com</a>
+ <a class="btn btn-secondary" href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">Watch Live — بات با ما (BotBama)</a>
 </div>
+
+<div class="glance-box">
+ <div class="glance-grid">
+  <div>
+   <h2 style="margin-bottom:6px">What You Are Looking At</h2>
+   <p style="margin-bottom:8px"><strong>Top pane:</strong> Smoothed Heikin-Ashi candles, moving average curve, and directional markers.</p>
+   <p style="margin-bottom:0"><strong>Bottom pane:</strong> Slope angle in degrees scaled by ATR(14) against configurable angle thresholds.</p>
+  </div>
+  <svg class="glance-svg" viewBox="0 0 420 155" role="img" aria-label="Visual snapshot of Heikin-Ashi candles and lower slope pane">
+   <line x1="14" y1="98" x2="406" y2="98" stroke="#38322f" stroke-width="1"/>
+   <path d="M24 78 Q95 72 155 58 T295 44 T392 52" fill="none" stroke="#46d0ff" stroke-width="2"/>
+   <g stroke-width="1.5">
+    <line x1="42" y1="64" x2="42" y2="86" stroke="#3fb7a9"/><rect x="37" y="70" width="10" height="10" fill="#3fb7a9"/>
+    <line x1="78" y1="58" x2="78" y2="80" stroke="#3fb7a9"/><rect x="73" y="63" width="10" height="11" fill="#3fb7a9"/>
+    <line x1="114" y1="50" x2="114" y2="72" stroke="#3fb7a9"/><rect x="109" y="55" width="10" height="11" fill="#3fb7a9"/>
+    <line x1="150" y1="44" x2="150" y2="66" stroke="#3fb7a9"/><rect x="145" y="48" width="10" height="11" fill="#3fb7a9"/>
+    <line x1="186" y1="42" x2="186" y2="64" stroke="#e0566e"/><rect x="181" y="47" width="10" height="10" fill="#e0566e"/>
+    <line x1="222" y1="48" x2="222" y2="70" stroke="#e0566e"/><rect x="217" y="53" width="10" height="10" fill="#e0566e"/>
+    <line x1="258" y1="40" x2="258" y2="62" stroke="#3fb7a9"/><rect x="253" y="45" width="10" height="11" fill="#3fb7a9"/>
+    <line x1="294" y1="34" x2="294" y2="56" stroke="#3fb7a9"/><rect x="289" y="38" width="10" height="11" fill="#3fb7a9"/>
+    <line x1="330" y1="38" x2="330" y2="60" stroke="#e0566e"/><rect x="325" y="43" width="10" height="10" fill="#e0566e"/>
+    <line x1="366" y1="42" x2="366" y2="64" stroke="#3fb7a9"/><rect x="361" y="47" width="10" height="10" fill="#3fb7a9"/>
+   </g>
+   <polygon points="150,70 145,79 155,79" fill="#ffffff"/>
+   <polygon points="222,74 217,65 227,65" fill="#ffd54a"/>
+   <rect x="14" y="104" width="392" height="41" rx="3" fill="#1b1715"/>
+   <rect x="14" y="118" width="392" height="12" fill="#ffd54a22"/>
+   <path d="M24 134 L78 115 L150 112 L222 138 L294 114 L366 123" fill="none" stroke="#46d0ff" stroke-width="1.6"/>
+   <text x="20" y="115" fill="#b8ada5" font-size="9" font-family="Inter,sans-serif">ATR-Normalized Slope (°) &amp; Threshold Band</text>
+  </svg>
+ </div>
+</div>
+
 <div class="kpis">
  <div class="kpi"><b>Dual-Series</b><span>Heikin-Ashi smoothed candles paired with a lower slope &amp; threshold pane.</span></div>
  <div class="kpi"><b>ATR-Scaled</b><span>Slope angles normalize price deltas against ATR so steepness stays scale-aware.</span></div>
@@ -112,11 +148,11 @@ ol{padding-inline-start:22px;max-width:76ch}ol li{margin-bottom:8px}
 </section>
 
 <section class="band">
-<h2>Usage &amp; Channels</h2>
+<h2>Usage &amp; Official Links</h2>
 <ol>
- <li>Place <code>index.html</code> and <code>data.json</code> in the same directory and serve via a local static server (e.g., <code>python -m http.server</code>) so <code>fetch('data.json')</code> succeeds.</li>
- <li>Visit <a href="https://botbama.com" target="_blank" rel="noopener noreferrer">botbama.com</a> to learn more about BotBama tools and resources.</li>
- <li>Watch live streams on the <strong>بات با ما (BotBama)</strong> YouTube channel (<a href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">youtube.com/@BotBama</a>).</li>
+ <li>Place <code>index.html</code> and <code>data.json</code> in the same directory and serve via a local static server (such as <code>python -m http.server</code>) or GitHub Pages so <code>fetch('data.json')</code> loads cleanly.</li>
+ <li>Explore <a href="https://botbama.com" target="_blank" rel="noopener noreferrer">botbama.com</a> for more details about BotBama tools and updates by Arya Alimohammadi (آریا علی‌محمدی).</li>
+ <li>Watch live sessions on the <strong>بات با ما (BotBama)</strong> YouTube channel (<a href="https://www.youtube.com/@BotBama" target="_blank" rel="noopener noreferrer">youtube.com/@BotBama</a>).</li>
 </ol>
 </section>
 
